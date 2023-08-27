@@ -2,6 +2,7 @@ module ov5640_ddr(
 	input                                sys_clk              ,//50Mhz
     input                                clk_25M              ,
     output  [1:0]                        cmos_init_done       ,//OV5640寄存器初始化完成
+    input            rst_key,
 
     //coms1	
     inout                                cmos1_scl            ,//cmos1 i2c 
@@ -75,6 +76,7 @@ module ov5640_ddr(
     reg_config	coms1_reg_config(
     	.clk_25M                 (clk_25M            ),//input
     	.camera_rstn             (cmos1_reset        ),//input
+     .rst_key                (1'b1),
     	.initial_en              (initial_en         ),//input		
     	.i2c_sclk                (cmos1_scl          ),//output
     	.i2c_sdat                (cmos1_sda          ),//inout
@@ -86,6 +88,7 @@ module ov5640_ddr(
     reg_config	coms2_reg_config(
     	.clk_25M                 (clk_25M            ),//input
     	.camera_rstn             (cmos2_reset        ),//input
+     .rst_key                (rst_key),
     	.initial_en              (initial_en         ),//input		
     	.i2c_sclk                (cmos2_scl          ),//output
     	.i2c_sdat                (cmos2_sda          ),//inout

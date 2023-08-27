@@ -281,7 +281,7 @@ ipsl_pcie_dma_ram ipsl_pcie_dma_bar0 (
     .rd_rst             (~rst_n                     )   // input
 );
 
-assign cpu_rd_en = bar2_wr_en;
+//assign cpu_rd_en = bar2_wr_en;
 /*
 reg                        bar2_wr_en_d1;
 reg    [ADDR_WIDTH-1:0]    bar2_wr_addr_d1;
@@ -379,8 +379,9 @@ begin
     else row_cnt <= row_cnt;
 end
 
-               
-
+assign o_bar2_rd_data  = cpu_rd_data;
+assign cpu_rd_en = i_bar2_rd_clk_en ;           
+/*
 
 // mwr wr data
 ipsl_pcie_dma_ram ipsl_pcie_dma_bar2 (
@@ -398,5 +399,5 @@ ipsl_pcie_dma_ram ipsl_pcie_dma_bar2 (
     .rd_rst             (~rst_n                     )   // input
 );
 
-
+*/
 endmodule

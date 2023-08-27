@@ -26,106 +26,121 @@ module video_pcie(
 
 wire hdmi_vsync = vsync_in;
 wire hdmi_hsync = href_in;
-wire hdmi_vld = de_in;/*synthesis PAP_MARK_DEBUG="1"*/
-wire hdmi_565 = data_in;
+wire hdmi_en = de_in;/*synthesis PAP_MARK_DEBUG="1"*/
+wire [15:0] hdmi_565 = data_in;
 wire hdmi_clk = pclk_in;
+
 //fifo-----------------------------
 reg hdmi_vsync_d1 = 0;
-wire wr_rst;
 always @(posedge hdmi_clk)
 begin
     hdmi_vsync_d1 <= hdmi_vsync;
 end 
+wire  wr_rst = (~hdmi_vsync_d1 & hdmi_vsync);
 
-wire hs_rst;
-reg hdmi_hsync_d1 = 0;
+reg hdmi_en_d1 ;
+reg hdmi_en_d2 ;
+reg hdmi_en_d3 ;
+reg hdmi_en_d4 ;
+reg hdmi_en_d5 ;
+reg hdmi_en_d6 ;
+reg hdmi_en_d7 ;
+reg hdmi_en_d8 ;
+reg [15:0] hdmi_565_d1 ;
+reg [15:0] hdmi_565_d2 ;
+reg [15:0] hdmi_565_d3 ;
+reg [15:0] hdmi_565_d4 ;
+reg [15:0] hdmi_565_d5 ;
+reg [15:0] hdmi_565_d6 ;
+reg [15:0] hdmi_565_d7 ;
+reg [15:0] hdmi_565_d8 ;
+
 always @(posedge hdmi_clk)
 begin
-    hdmi_hsync_d1 <= hdmi_hsync;
+    hdmi_en_d1 <= hdmi_en;
+    hdmi_en_d2 <= hdmi_en_d1;
+    hdmi_en_d3 <= hdmi_en_d2;
+    hdmi_en_d4 <= hdmi_en_d3;
+    hdmi_en_d5 <= hdmi_en_d4;
+    hdmi_en_d6 <= hdmi_en_d5;
+    hdmi_en_d7 <= hdmi_en_d6;
+    hdmi_en_d8 <= hdmi_en_d7;
+    hdmi_565_d1 <= hdmi_565;
+    hdmi_565_d2 <= hdmi_565_d1;
+    hdmi_565_d3 <= hdmi_565_d2;
+    hdmi_565_d4 <= hdmi_565_d3;
+    hdmi_565_d5 <= hdmi_565_d4;
+    hdmi_565_d6 <= hdmi_565_d5;
+    hdmi_565_d7 <= hdmi_565_d6;
+    hdmi_565_d8 <= hdmi_565_d7;
 end 
-
-assign wr_rst = (~hdmi_vsync_d1 & hdmi_vsync);
-assign hs_rst = (~hdmi_hsync_d1 & hdmi_hsync);
 
 wire [12:0]wr_water_level;/*synthesis PAP_MARK_DEBUG="1"*/
 wire [9:0]rd_water_level;/*synthesis PAP_MARK_DEBUG="1"*/
-wire [127:0] hdmi_rd_data;/*synthesis PAP_MARK_DEBUG="1"*/
-wire hdmi_rd_en ;/*synthesis PAP_MARK_DEBUG="1"*/
+
+wire [127:0] rd_data;/*synthesis PAP_MARK_DEBUG="1"*/
+wire rd_en ;/*synthesis PAP_MARK_DEBUG="1"*/
 wire cpu_rd_en;/*synthesis PAP_MARK_DEBUG="1"*/
 
+//写状态机
+wire prim_wr_en = (~hdmi_en_d8) && hdmi_en;
+reg prim_wr_en_d;
+always@(posedge hdmi_clk)   begin
+    prim_wr_en_d <= prim_wr_en;
+end
+wire wr_en = prim_wr_en | hdmi_en_d8;
+wire [15:0] wr_data = prim_wr_en ? bag_cnt : hdmi_565_d8;
+
+reg [15:0] bag_cnt = 0;
+always @(posedge hdmi_clk) begin
+    if(wr_rst) bag_cnt <= 16'b0;
+    else if( (~prim_wr_en) && prim_wr_en_d ) bag_cnt <= bag_cnt + 1'b1;
+    else bag_cnt <= bag_cnt;
+end
 
 //读状态机
-//640 DW = 640 * 32 = 128 * 160
 //644 DW = 644 * 32 = 128 * 161
-reg [9:0] cpu_rd_cnt = 0;/*synthesis PAP_MARK_DEBUG="1"*/
+reg [15:0] cpu_rd_cnt = 0;/*synthesis PAP_MARK_DEBUG="1"*/
+
 always@(posedge pclk_div2)   begin
-    if(cpu_rd_en & (cpu_rd_cnt == 161 - 1)) cpu_rd_cnt <= 10'd0;
+    if(cpu_rd_en && (cpu_rd_cnt == 160)) cpu_rd_cnt <= 10'd0;
     else if(cpu_rd_en) cpu_rd_cnt <= cpu_rd_cnt + 1'b1;
     else cpu_rd_cnt <= cpu_rd_cnt;
 end
 
-reg state;/*synthesis PAP_MARK_DEBUG="1"*///0:无效包，1:有效包
-reg [127:0] prim_data = 0;/*synthesis PAP_MARK_DEBUG="1"*/
+reg state = 0;/*synthesis PAP_MARK_DEBUG="1"*///0:无效包，1:有效包
 
 always@(posedge pclk_div2)   begin
     if(cpu_rd_en) begin
-
         if(cpu_rd_cnt == 0) begin
-            if(wr_water_level < 1280) begin
-                prim_data <= {8{16'hffff}}; //无效包
-                state <= 0;
-            end
-            else begin
-                state <= 1;
-                if(vs_hold) prim_data <= {8{16'ha55a}}; //有效包 
-                else prim_data <= {8{16'hc33c}};
-            end
+            if(rd_water_level < 160) state <= 0;
+            else state <= 1;
         end
-
-        else if(cpu_rd_cnt < 160) begin
-            state <= state;
-        end
-
-        else if(cpu_rd_cnt == 160) begin
-            state <= 0;
-        end
+        else if(cpu_rd_cnt < 160) state <= state;
+        else if(cpu_rd_cnt == 160) state <= 0;
     end
     else begin
         state <= state;
     end
 end
 
-assign hdmi_rd_en = (cpu_rd_en && (state == 1) );
+assign rd_en = (cpu_rd_en && ( state || (cpu_rd_cnt == 0 && rd_water_level >= 160 ) ) );
 
-reg hdmi_rd_en_d;   //hdmi_rd_data_valid
+reg rd_en_d;   //rd_data_valid
 always@(posedge pclk_div2)   begin
-    hdmi_rd_en_d <= hdmi_rd_en;
-end
-
-//插帧起始 c33c
-reg vs_hold = 0;
-always @(posedge pclk_div2) begin
-    if(vsync_in) begin
-        vs_hold <= 1'b1;
-    end
-    else if(hdmi_rd_en_d) begin
-        vs_hold <= 1'b0;
-    end
-    else begin
-        vs_hold <= vs_hold;
-    end
+    rd_en_d <= rd_en;
 end
 
 wire [127:0] cpu_rd_data;/*synthesis PAP_MARK_DEBUG="1"*/
-assign cpu_rd_data =  hdmi_rd_en_d ? hdmi_rd_data : prim_data;
-
+wire [127:0] rd_data;
+assign cpu_rd_data =  rd_en_d ? rd_data : {8{16'hffff}};
 
 pcie_fifo u_pcie_fifo (
 // 16 pix
   .wr_clk            (hdmi_clk),             // input           34Mhz 
   .wr_rst            (wr_rst),               // input           
-  .wr_en             (hdmi_vld),             // input           
-  .wr_data           (data_in),            // input [15:0]    
+  .wr_en             (wr_en),             // input           
+  .wr_data           (wr_data),            // input [15:0]    
   .wr_full           (),         // output          
   .almost_full       (),     // output [12:0]   
   .wr_water_level    (wr_water_level),       // output   
@@ -133,8 +148,8 @@ pcie_fifo u_pcie_fifo (
 // 1CLK 128wei    16pix     640DW 
   .rd_clk            (pclk_div2),             // input           100Mhz
   .rd_rst            (wr_rst),      // input           
-  .rd_en             (hdmi_rd_en),            // input           
-  .rd_data           (hdmi_rd_data),         // output [127:0]  
+  .rd_en             (rd_en),            // input           
+  .rd_data           (rd_data),         // output [127:0]  
   .rd_empty          (),        // output          
   .almost_empty      (),    // output [9:0]    
   .rd_water_level    (rd_water_level)        // output          
@@ -401,7 +416,7 @@ u_pcie u_pcie (
   .radm_cpl_timeout(),            // output
 
   .cfg_pbus_num(cfg_pbus_num),                    // output [7:0]
-  .cfg_pbus_dev_num(cfg_pbus_dev_num)             // output [4:0]
+  .cfg_pbus_dev_num(cfg_pbus_dev_num)             // output [4:0] 
 );
 
 endmodule

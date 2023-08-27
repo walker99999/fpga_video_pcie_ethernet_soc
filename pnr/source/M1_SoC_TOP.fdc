@@ -13,7 +13,7 @@ create_generated_clock -name {ioclk0} -source [get_ports {sys_clk}] [get_pins {u
 create_generated_clock -name {ioclk1} -source [get_ports {sys_clk}] [get_pins {u_DDR3_50H.I_GTP_IOCLKBUF_1/CLKOUT}] -master_clock [get_clocks {sys_clk}] -multiply_by {16} -divide_by {2}
 create_generated_clock -name {ioclk2} -source [get_ports {sys_clk}] [get_pins {u_DDR3_50H.I_GTP_IOCLKBUF_2/CLKOUT}] -master_clock [get_clocks {sys_clk}] -multiply_by {16} -divide_by {2}
 create_generated_clock -name {ioclk_gate_clk} -source [get_ports {sys_clk}] [get_pins {u_DDR3_50H.u_clkbufg_gate/CLKOUT}] -master_clock [get_clocks {sys_clk}] -multiply_by {16} -divide_by {8}
-create_generated_clock -name {HCLK} -source [get_ports {sys_clk}] [get_nets {u_pll.clkout0}] -master_clock [get_clocks {sys_clk}] -multiply_by {5} -divide_by {2}
+create_generated_clock -name {HCLK} -source [get_ports {sys_clk}] [get_nets {u_pll.clkout0}] -master_clock [get_clocks {sys_clk}] -multiply_by {1} -divide_by {5}
 create_generated_clock -name {cfg_clk} -source [get_ports {sys_clk}] [get_nets {u_pll.clkout1}] -master_clock [get_clocks {sys_clk}] -multiply_by {1} -divide_by {5}
 create_generated_clock -name {clk_25M} -source [get_ports {sys_clk}] [get_nets {u_pll.clkout2}] -master_clock [get_clocks {sys_clk}] -multiply_by {1} -divide_by {2}
 create_generated_clock -name {pix_clk} -source [get_ports {sys_clk}] [get_nets {u_pll.clkout3}] -master_clock [get_clocks {sys_clk}] -multiply_by {27} -divide_by {20} -disable
@@ -89,15 +89,40 @@ define_attribute {p:rst_key} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:rst_key} {PAP_IO_STANDARD} {LVCMOS33}
 define_attribute {p:rst_key} {PAP_IO_PULLUP} {TRUE}
 define_attribute {p:gpio_in0} {PAP_IO_DIRECTION} {INPUT}
-define_attribute {p:gpio_in0} {PAP_IO_LOC} {J17}
+define_attribute {p:gpio_in0} {PAP_IO_LOC} {L15}
 define_attribute {p:gpio_in0} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:gpio_in0} {PAP_IO_STANDARD} {LVCMOS33}
 define_attribute {p:gpio_in0} {PAP_IO_NONE} {TRUE}
 define_attribute {p:gpio_in1} {PAP_IO_DIRECTION} {INPUT}
-define_attribute {p:gpio_in1} {PAP_IO_LOC} {K16}
+define_attribute {p:gpio_in1} {PAP_IO_LOC} {J17}
 define_attribute {p:gpio_in1} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:gpio_in1} {PAP_IO_STANDARD} {LVCMOS33}
 define_attribute {p:gpio_in1} {PAP_IO_NONE} {TRUE}
+define_attribute {p:gpio_in2} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:gpio_in2} {PAP_IO_LOC} {K16}
+define_attribute {p:gpio_in2} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:gpio_in2} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:gpio_in2} {PAP_IO_NONE} {TRUE}
+define_attribute {p:gpio_in3} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:gpio_in3} {PAP_IO_LOC} {J16}
+define_attribute {p:gpio_in3} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:gpio_in3} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:gpio_in3} {PAP_IO_NONE} {TRUE}
+define_attribute {p:gpio_in4} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:gpio_in4} {PAP_IO_LOC} {J19}
+define_attribute {p:gpio_in4} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:gpio_in4} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:gpio_in4} {PAP_IO_NONE} {TRUE}
+define_attribute {p:gpio_in5} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:gpio_in5} {PAP_IO_LOC} {H20}
+define_attribute {p:gpio_in5} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:gpio_in5} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:gpio_in5} {PAP_IO_NONE} {TRUE}
+define_attribute {p:gpio_in6} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:gpio_in6} {PAP_IO_LOC} {H17}
+define_attribute {p:gpio_in6} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:gpio_in6} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:gpio_in6} {PAP_IO_NONE} {TRUE}
 define_attribute {p:LED[7]} {PAP_IO_DIRECTION} {OUTPUT}
 define_attribute {p:LED[7]} {PAP_IO_LOC} {F8}
 define_attribute {p:LED[7]} {PAP_IO_VCCIO} {1.2}

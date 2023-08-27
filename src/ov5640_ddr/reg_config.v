@@ -23,6 +23,7 @@
 		  input clk_25M,
 		  input camera_rstn,
 		  input initial_en,
+            input rst_key,
 		  output reg_conf_done,
 		  output i2c_sclk,
 		  inout i2c_sdat,
@@ -66,7 +67,7 @@ end
 ////iic¼Ä´æÆ÷ÅäÖÃ¹ı³Ì¿ØÖÆ    
 always@(posedge clock_20k)    
 begin
-   if(!camera_rstn) begin
+   if(!initial_en || !rst_key) begin
        config_step<=0;
        start<=0;
        reg_index<=0;
